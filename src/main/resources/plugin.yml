@@ -1,0 +1,4 @@
+name: ExplosionControl
+version: ${project.version}
+main: com.johnymuffin.beta.tntcontrol.ExplosionControl
+author: JohnyMuffin
