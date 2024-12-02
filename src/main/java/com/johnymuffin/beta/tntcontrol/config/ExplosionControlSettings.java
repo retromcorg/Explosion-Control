@@ -1,139 +1,95 @@
-package com.johnymuffin.beta.tntcontrol;
+package com.johnymuffin.beta.tntcontrol.config;
 
-import java.util.ArrayList;
+import org.bukkit.util.config.Configuration;
 
-import com.johnymuffin.beta.tntcontrol.config.ExplosionControlSettings;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
-import org.bukkit.block.Block;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByBlockEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityExplodeEvent;
+import java.io.File;
 
-import static com.johnymuffin.beta.tntcontrol.ExplosionControl.blockBlacklist;
-import static com.johnymuffin.beta.tntcontrol.ExplosionControl.blockWhitelist;
+public class ExplosionControlSettings extends Configuration {
 
-public class ExplosionControlListener implements Listener {
-   private ExplosionControl plugin;
-   private long lastResetTime = System.currentTimeMillis();
-   private int explosionCount = 0;
-
-   private ExplosionControlSettings settings;
-
-   private final boolean tntChainingEnabled;
-   private final int tntChainingMaximum;
-   private final long tntChainingDurationMilliseconds;
-
-   private final boolean tntBehaviorCancelNonWhitelist;
-   private final boolean tntBehaviorUseTNTWhitelist;
-   private final boolean tntBehaviorIgnoreSingleBlockPopOff;
-
-   public ExplosionControlListener(ExplosionControl plugin) {
-      this.plugin = plugin;
-      settings = plugin.getSettings();
-
-      // Load Config Values
-      tntChainingEnabled = settings.getConfigBoolean("settings.tnt-chaining.enabled");
-      tntChainingMaximum = settings.getConfigInteger("settings.tnt-chaining.maximum");
-      tntChainingDurationMilliseconds = settings.getConfigLong("settings.tnt-chaining.duration-milliseconds");
-
-      tntBehaviorCancelNonWhitelist = settings.getConfigBoolean("settings.tnt-behavior.cancel-entire-explosion-if-non-whitelisted.enabled");
-      tntBehaviorUseTNTWhitelist = settings.getConfigBoolean("settings.tnt-behavior.use-tnt-whitelist.enabled");
-      tntBehaviorIgnoreSingleBlockPopOff = settings.getConfigBoolean("settings.tnt-behavior.ignore-single-if-block-pop-off.enabled");
+   public ExplosionControlSettings(File settingsFile) {
+      super(settingsFile);
+      this.reload();
    }
 
-   @EventHandler
-   public void onExplode(EntityExplodeEvent event) {
-      if (event.isCancelled())
-         return;
-      Location location = event.getLocation();
-      if (location.getWorld().getEnvironment().equals(World.Environment.NETHER))
-         return;
-      if (!location.getWorld().getEnvironment().equals(World.Environment.NORMAL)) {
-         event.setCancelled(true);
-         return;
-      }
+   private void write() {
+      // Main
+      generateConfigOption("config-version", 1);
 
-      if(tntChainingEnabled){
-         long currentTime = System.currentTimeMillis();
+      // TNT Chaining
+      generateConfigOption("settings.tnt-chaining.enabled", true);
+      generateConfigOption("settings.tnt-chaining.maximum", 20);
+      generateConfigOption("settings.tnt-chaining.duration-milliseconds", 1000);
 
-         if (currentTime - lastResetTime >= tntChainingDurationMilliseconds) {
-            lastResetTime = currentTime;
-            explosionCount = 0;
-         }
-      }
-
-      ArrayList<Block> blocksToRemove = new ArrayList<>();
-      for (Block b : event.blockList()) {
-         Material type = b.getType();
-
-         if(tntBehaviorCancelNonWhitelist){
-            if (!blockWhitelist.contains(type)){
-               event.setCancelled(true);
-               return;
-            }
-         }
-         else if(tntBehaviorUseTNTWhitelist){
-            if (!blockWhitelist.contains(type)){
-               blocksToRemove.add(b);
-               continue;
-            }
-         }
-
-         if(tntBehaviorIgnoreSingleBlockPopOff) {
-            if(blockBlacklist.contains(b.getRelative(0, 1, 0).getType())){
-               blocksToRemove.add(b);
-               continue;
-            }
-            if(blockBlacklist.contains(b.getRelative(1, 0, 0).getType())){
-               blocksToRemove.add(b);
-               continue;
-            }
-            if(blockBlacklist.contains(b.getRelative(-1, 0, 0).getType())){
-               blocksToRemove.add(b);
-               continue;
-            }
-            if(blockBlacklist.contains(b.getRelative(0, 0, 1).getType())){
-               blocksToRemove.add(b);
-               continue;
-            }
-            if(blockBlacklist.contains(b.getRelative(0, 0, -1).getType())){
-               blocksToRemove.add(b);
-            }
-         }
-
-         if(tntChainingEnabled){
-            if(type == Material.TNT){
-               if (explosionCount >= tntChainingMaximum) {
-                  blocksToRemove.add(b);
-               }
-               else{
-                  explosionCount++;
-               }
-            }
-         }
-         else{
-            if(type == Material.TNT){
-               blocksToRemove.add(b);
-            }
-         }
-      }
-
-      event.blockList().removeAll(blocksToRemove);
+      // TNT Behaviors
+      generateConfigOption("settings.tnt-behavior.cancel-entire-explosion-if-non-whitelisted.enabled", true);
+      generateConfigOption("settings.tnt-behavior.use-tnt-whitelist.enabled", true);
+      generateConfigOption("settings.tnt-behavior.ignore-single-if-block-pop-off.enabled", true);
    }
 
-   @EventHandler
-   public void onEntityDamageByBlock(EntityDamageByBlockEvent event) {
-      if (event.isCancelled())
-         return;
-      if (!(event.getEntity() instanceof org.bukkit.entity.Player))
-         return;
-      if (!event.getEntity().getWorld().getEnvironment().equals(World.Environment.NORMAL) || !event.getEntity().getWorld().getEnvironment().equals(World.Environment.SKYLANDS))
-         return;
-      if (event.getCause() == EntityDamageEvent.DamageCause.BLOCK_EXPLOSION)
-         event.setCancelled(true);
+
+   public void generateConfigOption(String key, Object defaultValue) {
+      if (this.getProperty(key) == null) {
+         this.setProperty(key, defaultValue);
+      }
+      final Object value = this.getProperty(key);
+      this.removeProperty(key);
+      this.setProperty(key, value);
+   }
+
+
+   //Getters Start
+   public Object getConfigOption(String key) {
+      return this.getProperty(key);
+   }
+
+   public String getConfigString(String key) {
+      return String.valueOf(getConfigOption(key));
+   }
+
+   public Integer getConfigInteger(String key) {
+      return Integer.valueOf(getConfigString(key));
+   }
+
+   public Long getConfigLong(String key) {
+      return Long.valueOf(getConfigString(key));
+   }
+
+   public Double getConfigDouble(String key) {
+      return Double.valueOf(getConfigString(key));
+   }
+
+   public Boolean getConfigBoolean(String key) {
+      return Boolean.valueOf(getConfigString(key));
+   }
+   //Getters End
+
+
+   public Long getConfigLongOption(String key) {
+      if (this.getConfigOption(key) == null) {
+         return null;
+      }
+      return Long.valueOf(String.valueOf(this.getProperty(key)));
+   }
+
+
+   private boolean convertToNewAddress(String newKey, String oldKey) {
+      if (this.getString(newKey) != null) {
+         return false;
+      }
+      if (this.getString(oldKey) == null) {
+         return false;
+      }
+      System.out.println("Converting Config: " + oldKey + " to " + newKey);
+      Object value = this.getProperty(oldKey);
+      this.setProperty(newKey, value);
+      this.removeProperty(oldKey);
+      return true;
+   }
+
+
+   private void reload() {
+      this.load();
+      this.write();
+      this.save();
    }
 }
