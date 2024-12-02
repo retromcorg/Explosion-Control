@@ -45,7 +45,7 @@ public class ExplosionControl extends JavaPlugin {
       log.info("[" + pdf.getName() + "] Is loading");
 
       File dataFolder = plugin.getDataFolder();
-      if (!dataFolder.exists() && dataFolder.mkdir()) {
+      if (!dataFolder.exists()) {
          dataFolder.mkdir();
       }
 
