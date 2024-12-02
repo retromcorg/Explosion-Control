@@ -105,20 +105,16 @@ public class ExplosionControlListener implements Listener {
             }
          }
 
-         if(tntChainingEnabled){
-            if(type == Material.TNT){
-               if (explosionCount >= tntChainingMaximum) {
-                  blocksToRemove.add(b);
-               }
-               else{
-                  explosionCount++;
-               }
-            }
-         }
-         else{
-            if(type == Material.TNT){
+         if(tntChainingEnabled && type == Material.TNT){
+            if (explosionCount >= tntChainingMaximum) {
                blocksToRemove.add(b);
             }
+            else{
+               explosionCount++;
+            }
+         }
+         else if(type == Material.TNT){
+            blocksToRemove.add(b);
          }
       }
 
