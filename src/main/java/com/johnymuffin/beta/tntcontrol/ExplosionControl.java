@@ -30,7 +30,7 @@ public class ExplosionControl extends JavaPlugin {
            Material.RED_ROSE, Material.RED_MUSHROOM, Material.BROWN_MUSHROOM, Material.TORCH, Material.SNOW,
            Material.CACTUS, Material.CLAY, Material.SUGAR_CANE_BLOCK, Material.ICE, Material.TNT, Material.FIRE,
            Material.LAVA, Material.WATER, Material.STATIONARY_LAVA, Material.STATIONARY_WATER, Material.LEVER,
-           Material.REDSTONE_TORCH_OFF, Material.REDSTONE_TORCH_ON));
+           Material.REDSTONE_TORCH_OFF, Material.REDSTONE_TORCH_ON, Material.PISTON_MOVING_PIECE));
 
    public static final Set<Material> blockBlacklist = new HashSet<>(Arrays.asList(Material.DIODE_BLOCK_OFF, Material.DIODE_BLOCK_ON,
            Material.STONE_BUTTON, Material.RAILS, Material.DETECTOR_RAIL, Material.POWERED_RAIL, Material.REDSTONE_WIRE, Material.SIGN_POST,
