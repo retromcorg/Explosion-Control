@@ -12,6 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.entity.Creeper;
 
 import static com.johnymuffin.beta.tntcontrol.ExplosionControl.blockBlacklist;
 import static com.johnymuffin.beta.tntcontrol.ExplosionControl.blockWhitelist;
@@ -50,9 +51,19 @@ public class ExplosionControlListener implements Listener {
       if (event.isCancelled())
          return;
       Location location = event.getLocation();
-      if (location.getWorld().getEnvironment().equals(World.Environment.NETHER))
+
+
+      // Creper explosions sh
+      World.Environment environment = location.getWorld().getEnvironment();
+      if (event.getEntity() instanceof Creeper
+              && (environment.equals(World.Environment.NORMAL) || environment.equals(World.Environment.SKYLANDS))) {
+         event.blockList().clear();
          return;
-      if (!location.getWorld().getEnvironment().equals(World.Environment.NORMAL)) {
+      }
+
+      if (environment.equals(World.Environment.NETHER))
+         return;
+      if (!environment.equals(World.Environment.NORMAL)) {
          event.setCancelled(true);
          return;
       }
